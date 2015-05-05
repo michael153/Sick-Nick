@@ -21,7 +21,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	private JLabel caption; //caption is the jlabel associated with the text field that explains what it's for
 	private JPanel game; //the actual panel that holds the game
 	private Image bg;
-	private javax.swing.Timer master, pplgen, powergen; //<--wow thats alot of timers
+	private javax.swing.Timer master, pplgen, powergen;
 	
 	private ScorePanel after;
 	private int wave = 0;
@@ -75,6 +75,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			boolean changed = false;
 			for (int i = 0; i < powerloc.size(); i++)
 			{
+				powerloc.get(i).x--; //this is to simulate the movement of the power ups
 				if (Math.abs(x - (powerloc.get(i).x)) <= 20 && Math.abs(y-(powerloc.get(i).y+3*LANE_WIDTH)) <= 32)
 				{
 					if (powerloc.get(i).t == 0) tissue = true;
@@ -101,11 +102,21 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 
 			for (int i = 0; i < people.size(); i++)
 			{
-				people.get(i).x -= 2; //update people's position
+				people.get(i).x -= people.get(i).speed; //update people's position
+				//check within the radius of the person
+				if (clock % 20 == 0) //check only 3 times in 1 second so it's not automatic loss
+				{
+					if ((x - people.get(i).x)*(x - people.get(i).x) + (y - people.get(i).y + 10)*(y - people.get(i).y + 10) <= people.get(i).radius*people.get(i).radius)
+					{
+						//System.out.println("TAKEN " + (people.get(i).sicklevel)*(int)(Math.sqrt(people.get(i).radius+1 - Math.sqrt((x - people.get(i).x)*(x - people.get(i).x) + (y - people.get(i).y + 10)*(y - people.get(i).y + 10))))/5 + " DAMAGE.");
+						health -= ((people.get(i).sicklevel)*(int)(Math.sqrt(people.get(i).radius+1 - Math.sqrt((x - people.get(i).x)*(x - people.get(i).x) + (y - people.get(i).y + 10)*(y - people.get(i).y + 10)))))/5 + 1;
+					}
+				}
+				//check if it's "spot on", in which case more damage is ensured
 				if (Math.abs(x - people.get(i).x) < 23 && Math.abs(y - people.get(i).y + 10) < 30)
 				{
 					people.get(i).x = -100;
-					health -= (people.get(i).sicklevel + 1)*4;
+					health -= (people.get(i).sicklevel + 1)*6; //5*sicklevel is the damaged heatlh
 					changed = true;
 				}
 			}
@@ -204,11 +215,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					//set the paint (have to cast g to Graphics2d) as the gradient paint, which will be the health bar
 					((Graphics2D)g).setPaint(gp);
 					g.fillRect(10, 15, health, 15);
+
+					g.setColor(Color.BLACK);
+					g.drawString(health + "% health", 115, 27);
 					
 					for (int i = 0; i < people.size(); i++) //as time goes on, move sick people to the left x pixels
 					{
-						//draw the image, keeping all the information
-						g.drawImage(sick, people.get(i).x, people.get(i).y, people.get(i).x + 20, people.get(i).y + 30, 0, 0, 380, 940, this);
+						g.drawImage(sick, people.get(i).x, people.get(i).y, people.get(i).x + 20, people.get(i).y + 30, 0, 0, 380, 940, this); //draw the image, keeping all the information
+						//g.drawOval(people.get(i).x - people.get(i).radius + 10, people.get(i).y - people.get(i).radius + 15, 2*people.get(i).radius, 2*people.get(i).radius);
 					}
 				}
 			}
@@ -242,16 +256,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		{
 			//add to clock
 			clock++;
-
 			//shift everything over by 1 since it's a moving frame
 			x--;
 			score += 1; //add values to the score, because the user lasts this long
-			
 			offset--; //background has to move
 			if (offset < -200)
 				offset += 200;
 
-			if(clock % 50 == 0)
+			if(clock % 75 == 0)
 				health = Math.min(health+1, 100);
 		}
 
@@ -275,8 +287,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		//spawning, draw a new wave of sick ppl every 5 seconds (60 presses on keyboard up or down for now)
 		if (e.getSource() == pplgen)
 		{
+			Random r = new Random((long)(Math.random()*100));
 			int[] weighted = {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};
-			int rnum = (int)(Math.random()*(4 + score/10000)); //# of possible sick people will depend of score and time played (to make it harder)
+			int rnum = (int)(Math.random()*(8 - 8/clock + score/10000)); //# of possible sick people will depend of score and time played (to make it harder)
 			int ry = -1;
 			for (int i = 0; i < rnum; i++) //draw sick people depending on random number
 			{
@@ -288,7 +301,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 				}
 				else 
 					ry = (int)((Math.random() * (7*LANE_WIDTH-30)) + 3*LANE_WIDTH);
-				people.add(new People(1000, ry, weighted[(int)(Math.random()*weighted.length)]));
+				int[] sign = {-1, 1};
+				people.add(new People(1300 + sign[(int)(Math.random()*2)]*r.nextInt(300), ry, weighted[r.nextInt(weighted.length)]));
 			}
 		}
 
@@ -365,7 +379,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 
 	class People extends Object implements Comparator<People>, Comparable<People>
 	{
-		int x, y, sicklevel;
+		int x, y, sicklevel, speed, radius;
 
 		public People() {}
 		
@@ -374,6 +388,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			this.x = x;
 			this.y = y;
 			this.sicklevel = sicklevel;
+			speed = ((8 - sicklevel)+5)/3;
+			radius = 5*((int)(sicklevel*(Math.sqrt(sicklevel) + 1)/2.0) + speed);
+			System.out.println("Level " + sicklevel + " radius: " + radius);
 		}
 
 
