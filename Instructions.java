@@ -93,20 +93,20 @@ public class Instructions extends JPanel implements ActionListener
 		JLabel title = new JLabel("<html><font size = \"15\"><u>Instructions (Cont'd)</u></font></html>");
 		JLabel pu = new JLabel("<html><u><b>Power Ups</b></u><br/>These can be bought in the in-game store to help the player survive longer.</html>");
 		JLabel d = new JLabel("<html><u><b>Diseases</b></u><br/>The other humans that Nick has to dodge are sick to different extents. Some are greener/sicker than the others. The following shows the levels of sickness.</html>");
-		JLabel tissue = new JLabel("Tissues: Increases health x15%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("Tissue.png")), JLabel.LEFT);
-		JLabel shoes = new JLabel("Sturdy Shoes: Increases speed", new ImageIcon(Toolkit.getDefaultToolkit().getImage("Shoes.png")), JLabel.LEFT);
-		JLabel bottle = new JLabel("Hand Sanitizer: Increases health x20%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("Bottle.png")), JLabel.LEFT);
-		JLabel gloves = new JLabel("Gloves: Increases health x25%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("Gloves.png")), JLabel.LEFT);
-		JLabel glasses = new JLabel("Glasses: Increases vision, see areas of sickness", new ImageIcon(Toolkit.getDefaultToolkit().getImage("Glasses.png")), JLabel.LEFT);
-		JLabel mask = new JLabel("Face Mask: Increases health x50%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("Mask.png")), JLabel.LEFT);
-		JLabel b1 = new JLabel("<html>Healthy</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("B1.jpg")), JLabel.LEFT);
-		JLabel g1 = new JLabel("<html>Level 1 Sickness: Most common sicknesses, such as the common cold, or norovirus</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("G1.jpg")), JLabel.LEFT);
-		JLabel g2 = new JLabel("<html>Level 2 Sickness: Common ilnesses that are relatively benign, such as Flu (Influenza), or Seasonal Flu </html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("G2.jpg")), JLabel.LEFT);
-		JLabel g3 = new JLabel("<html>Level 3 Sickness: Very contagious (e.g Rotavirus, Mumps)</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("G3.jpg")), JLabel.LEFT);
-		JLabel g4 = new JLabel("<html>Level 4 Sickness: Somewhat deadly (e.g Swine Flu, Salmonella, or E.Coli)</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("G4.jpg")), JLabel.LEFT);
-		JLabel g5 = new JLabel("<html>Level 5 Sickness: Very contagious diseases (e.g Malaria, Measles, and Whooping Cough)</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("G5.jpg")), JLabel.LEFT);
-		JLabel g6 = new JLabel("<html>Level 6 Sickness: Deadly diseases, such as SARS (Severe Acute Respiratory Syndrome), Typhoid, Polio</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("G6.jpg")), JLabel.LEFT);
-		JLabel g7 = new JLabel("<html>Level 7 Sickness: Very deadly diseases, such as Ebola (fatality rate of 70%), HIV (80% fatality), TB, & Rabies (100% fatality rate)</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("G7.jpg")), JLabel.LEFT);
+		JLabel tissue = new JLabel("Tissues: Increases health x15%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Tissue.png")), JLabel.LEFT);
+		JLabel shoes = new JLabel("Sturdy Shoes: Increases speed", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Shoes.png")), JLabel.LEFT);
+		JLabel bottle = new JLabel("Hand Sanitizer: Increases health x20%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Bottle.png")), JLabel.LEFT);
+		JLabel gloves = new JLabel("Gloves: Increases health x25%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Gloves.png")), JLabel.LEFT);
+		JLabel glasses = new JLabel("Glasses: Increases vision, see areas of sickness", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Glasses.png")), JLabel.LEFT);
+		JLabel mask = new JLabel("Face Mask: Increases health x50%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Mask.png")), JLabel.LEFT);
+		JLabel b1 = new JLabel("<html>Healthy</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/B1.jpg")), JLabel.LEFT);
+		JLabel g1 = new JLabel("<html>Level 1 Sickness: Most common sicknesses, such as the common cold, or norovirus</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/G1.jpg")), JLabel.LEFT);
+		JLabel g2 = new JLabel("<html>Level 2 Sickness: Common ilnesses that are relatively benign, such as Flu (Influenza), or Seasonal Flu </html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/G2.jpg")), JLabel.LEFT);
+		JLabel g3 = new JLabel("<html>Level 3 Sickness: Very contagious (e.g Rotavirus, Mumps)</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/G3.jpg")), JLabel.LEFT);
+		JLabel g4 = new JLabel("<html>Level 4 Sickness: Somewhat deadly (e.g Swine Flu, Salmonella, or E.Coli)</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/G4.jpg")), JLabel.LEFT);
+		JLabel g5 = new JLabel("<html>Level 5 Sickness: Very contagious diseases (e.g Malaria, Measles, and Whooping Cough)</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/G5.jpg")), JLabel.LEFT);
+		JLabel g6 = new JLabel("<html>Level 6 Sickness: Deadly diseases, such as SARS (Severe Acute Respiratory Syndrome), Typhoid, Polio</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/G6.jpg")), JLabel.LEFT);
+		JLabel g7 = new JLabel("<html>Level 7 Sickness: Very deadly diseases, such as Ebola (fatality rate of 70%), HIV (80% fatality), TB, & Rabies (100% fatality rate)</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/G7.jpg")), JLabel.LEFT);
 		JPanel C2 = new JPanel();
 		
 		C2.setLayout(null); //gives more flexibility, add jlabels, images for powerups to this
