@@ -122,7 +122,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					
 					for (int i = 0; i < people.size(); i++) //as time goes on, move sick people to the left x pixels
 					{
-						g.drawImage(sick, people.get(i).x, people.get(i).y, people.get(i).x + 20, people.get(i).y + 30, 0, 0, 380, 940, this); //draw the image, keeping all the information
+						g.drawImage(people.get(i).img, people.get(i).x, people.get(i).y, people.get(i).x + 20, people.get(i).y + 30, 0, 0, 190, 240, this); //draw the image, keeping all the information
 						if (glasses)
 						{
 							g.setColor(Color.BLACK);
@@ -457,6 +457,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	class People extends Object implements Comparator<People>, Comparable<People>
 	{
 		int x, y, sicklevel, speed, radius;
+		Image img;
 
 		public People() {}
 		
@@ -467,6 +468,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			this.sicklevel = sicklevel;
 			this.speed = (int)((Math.log(8-sicklevel)+5)/3);
 			this.radius = 5*(sicklevel)+(int)(Math.random()*sicklevel);
+			if (sicklevel == 1) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan1.png");
+			else if (sicklevel == 2) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan2.png");
+			else if (sicklevel == 3) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan3.png");
+			else if (sicklevel == 4) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan4.png");
+			else if (sicklevel == 5) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan5.png");
+			else if (sicklevel == 6) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan6.png");
+			else if (sicklevel == 7) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan7.png");
 		}
 
 		public int compareTo(People d)
