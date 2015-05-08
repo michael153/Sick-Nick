@@ -16,9 +16,4 @@ This will compile all the programs, and create the class file. Then, to run the 
 
     java Runner
 
-: 
-    temp
-
-check
-    
 
