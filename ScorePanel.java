@@ -31,7 +31,7 @@ public class ScorePanel extends JPanel implements ActionListener
 		game.setFont(new Font("Impact", Font.PLAIN, 45));
 		
 		//hisc is the image that shows the user that there is a new highscore
-		hisc = Toolkit.getDefaultToolkit().getImage("HighScore.png");
+		hisc = Toolkit.getDefaultToolkit().getImage("img/HighScore.png");
 		
 		//llabel is the label that explains what the list of highscores is for
 		llabel = new JLabel("----- List of Highscores -----", SwingConstants.CENTER);
