@@ -7,10 +7,11 @@ import java.io.*;
 import java.util.*;
 import java.util.ArrayList;
 import java.text.*;
+import java.awt.image.BufferedImage;
 
 public class GamePanel extends JPanel implements ActionListener, KeyListener
 {
-	private int fieldpos, ms, x, y, health, score, offset, count, clock, wave;
+	private int fieldpos, ms, x, y, health, score, offset, count, clock, wave, timecount, difficulty = 4;
 	private boolean start, end, w, a, s, d; //start marks the game has started, end marks if the game has ended, w is true if w is pressed, a is true if a is pressed, etc.
 	private boolean tissue, shoes, bottle, gloves, glasses, mask, player = false; //will be true if the power up is currently being used
 	private String name; //this will be the name of the player playing right now
@@ -28,6 +29,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	private int[] pclock = new int[6];
 	
 	private ScorePanel after;
+	private Thread masterT = new Thread(new MyTimer());//<-- the loop/timer thread
+	private boolean running;
+	private MyBuffer hbar; //this is a custom class that will animate the health bar
 	
 	//WIDTH and HEIGHT are the width and height of the character
 	private final int SPEED = 2;
@@ -35,8 +39,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	private final int HEIGHT = 43;
 	private final int LANE_WIDTH = 54; //the width of each "row" in game	
 
-	private Thread masterT = new Thread(new masterLoop());//<-- the loop/timer thread
-	private boolean running;
 	
 	//<--use this to start the loop/new timer
 	public void startLoop() { masterT.start(); }
@@ -49,8 +51,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		setPreferredSize(new Dimension(1280, 720));
 		master = new javax.swing.Timer(1000/40, this); //40 FPS
 		//powergen = new javax.swing.Timer(40000, this); //Refreshes every 2/3rds of a minute
-		powergen = new javax.swing.Timer(400, this); //Refreshes every 2/3rds of a minute
+		powergen = new javax.swing.Timer(400, this); //Refreshes very fast, debug mode
 		pplgen = new javax.swing.Timer(6000, this); //Refreshes every 6 seconds
+		//pplgen = new javax.swing.Timer(600, this); //Refreshes every 0.6 seconds
+		hbar = new MyBuffer(100, 0.15); //initializing MyBuffer, starts of at 100, and transitions at a speed of 0.15
 		
 		for (int i = 0; i < 6; i++)
 			powertime[i] = new javax.swing.Timer(1000/10, this); //10 FPS, each power up lasts 10 seconds, so 10*10 frames
@@ -115,18 +119,19 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 
 					//set the paint (have to cast g to Graphics2d) as the gradient paint, which will be the health bar
 					((Graphics2D)g).setPaint(gp);
-					g.fillRect(10, 15, health, 15);
+					//g.fillRect(10, 15, health, 15);
+					g.fillRect(10, 15, hbar.value, 15);
 					
 					g.setColor(Color.BLACK);
-					g.drawString(health + "% health", 115, 27);
+					g.drawString(hbar.value + "% health", 115, 27);
 					
 					for (int i = 0; i < people.size(); i++) //as time goes on, move sick people to the left x pixels
 					{
-						g.drawImage(people.get(i).img, people.get(i).x, people.get(i).y, people.get(i).x + 20, people.get(i).y + 30, 0, 0, 190, 240, this); //draw the image, keeping all the information
+						g.drawImage(people.get(i).img, people.get(i).x, people.get(i).y, people.get(i).x + WIDTH, people.get(i).y + HEIGHT, 0, 0, 120, 200, this); //draw the image, keeping all the information
 						if (glasses)
 						{
-							g.setColor(Color.BLACK);
-							g.drawOval(people.get(i).x+10 - people.get(i).radius, people.get(i).y+15 - people.get(i).radius, 2*people.get(i).radius, 2*people.get(i).radius);
+							g.setColor(Color.RED);
+							g.drawOval(people.get(i).x+(WIDTH/2) - people.get(i).radius, people.get(i).y+(HEIGHT/2) - people.get(i).radius, 2*people.get(i).radius, 2*people.get(i).radius);
 						}
 					}
 				}
@@ -167,7 +172,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			if (offset < -200)
 				offset += 200;
 			if(clock % 50 == 0)
+			{
+				if (health+1 <= 100)
+					hbar.buf(1);
 				health = Math.min(health+1, 100);
+			}
+			if(clock % (100*difficulty) == 0)
+				timecount++;
 		}
 
 		//generate power up
@@ -192,20 +203,22 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		if (e.getSource() == pplgen)
 		{
 			Random r = new Random((long)Math.random()*1000);
-			int[] weighted = {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};
-			int rval = 8 - 8/(clock+1);
-			int rnum = (int)(Math.random()*(rval + score/10000)); //# of possible sick people will depend of score and time played (to make it harder)
+			//too easy how to make this increase when the game gets harder?
+			int[] weighted = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7};
+			int rval = 10 - 10/(clock+1);
+			int rnum = (rval + timecount + score/10000)/2 + r.nextInt((rval + timecount + score/10000)/2); //# of possible sick people will depend of score and time played (to make it harder)
+			//System.out.println("Upperbound of #people: " + (rval + timecount + score/10000));
 			int ry = -1;
 			for (int i = 0; i < rnum; i++) //draw sick people depending on random number
 			{
 				if(people.size() > 0)
 				{
 					//random y value 0
-					do { ry = (int)((Math.random() * (7*LANE_WIDTH-30)) + 3*LANE_WIDTH); }
-					while (Math.abs(ry - people.get(people.size()-1).y) <= 30);
+					do { ry = (int)((Math.random() * (7*LANE_WIDTH-HEIGHT)) + 3*LANE_WIDTH); }
+					while (Math.abs(ry - people.get(people.size()-1).y) <= HEIGHT);
 				}
 				else 
-					ry = (int)((Math.random() * (7*LANE_WIDTH-30)) + 3*LANE_WIDTH);
+					ry = (int)((Math.random() * (7*LANE_WIDTH-HEIGHT)) + 3*LANE_WIDTH);
 				int sign[] = {-1, 1};
 				people.add(new People(1300 + sign[(int)(Math.random()*2)]*r.nextInt(300), ry, weighted[r.nextInt(weighted.length)]));
 			}
@@ -244,6 +257,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	{
 		if(player)
 		{
+			hbar.timeStep(); //update the MyBuffer value
 			if (w) //inverted, y goes "up"
 			{
 				if (shoes) y -= (SPEED + 1); //1.5 times faster b/c of powerup
@@ -270,13 +284,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 				y = 162;
 			if (y > 540 - HEIGHT) //out of bounds (too far down)
 				y = 540 - HEIGHT;
-			if ((x < -1*WIDTH - SPEED/2) || health <= 0) //you lose, too far to the left, the SPEED/2 serves as a leniency
+			if ((x < -1*WIDTH - SPEED/2) || hbar.value <= 0) //you lose, too far to the left, the SPEED/2 serves as a leniency
 			{
 				System.out.println("Out of Screen, YOU LOSE!");
 				end = true;
 				master.stop();
+				pplgen.stop();
+				powergen.stop();
 				player = false;
 				game.setVisible(false);
+				remove(game);
 				after = new ScorePanel(score, name);
 				after.setPreferredSize(new Dimension(640, 640));
 				//TOO SUDDEN, ADD SOMETHING IN BETWEEN
@@ -289,12 +306,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			for (int i = 0; i < powerloc.size(); i++)
 			{
 				powerloc.get(i).x--;
-				if (Math.abs(x - (powerloc.get(i).x)) <= 20 && Math.abs(y-(powerloc.get(i).y+3*LANE_WIDTH)) <= 32)
+				//if (Math.abs(x - (powerloc.get(i).x)) <= 32 && Math.abs(y-(powerloc.get(i).y+3*LANE_WIDTH)) <= 32)
+				if (touching(x, y, WIDTH, HEIGHT, powerloc.get(i).x, powerloc.get(i).y + 3*LANE_WIDTH, 32, 32))
 				{
 					int type = powerloc.get(i).t;
 					if (type == 0)
 					{
 						tissue = true;
+						hbar.buf(Math.min(((int)(Math.ceil(health*1.15))), 100) - health); //find the change of health to add
 						health = Math.min((int)(Math.ceil(health*1.15)), 100); //increase health by 15%, but make sure it doesn't go over 100
 						notify.add(0);
 					}
@@ -306,12 +325,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					else if (type == 2)
 					{
 						bottle = true;
+						hbar.buf(Math.min(((int)(Math.ceil(health*1.2))), 100) - health); //find the change of health to add
 						health = Math.min((int)(Math.ceil(health*1.2)), 100); //increase health by 20%, make sure doesn't top 100
 						notify.add(2);
 					}
 					else if (type == 3)
 					{
 						gloves = true;
+						hbar.buf(Math.min(((int)(Math.ceil(health*1.25))), 100) - health); //find the change of health to add
 						health = Math.min((int)(Math.ceil(health*1.25)), 100); //increase health by 25%
 						notify.add(3);
 					}
@@ -323,12 +344,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					else if (type == 5)
 					{
 						mask = true;
+						hbar.buf(Math.min(((int)(Math.ceil(health*1.5))), 100) - health); //find the change of health to add
 						health = Math.min((int)(Math.ceil(health*1.5)), 100); //increase healthy by 50%
 						notify.add(5);
 					}
 					//while (notify.size() > 6)
 						//notify.remove();
 					powerloc.set(i, new Item(-100, -100, type)); //set it to unvisible, do not delete b/c deleting will mess up indexing
+					hbar.buf(Math.min(10, 100-health));
 					health = Math.min(health+10, 100); //ambigous effect no matter which one
 					changed = true;
 					pclock[powerloc.get(i).t] = 0;
@@ -350,16 +373,22 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			{
 				//people.get(i).x -= 2; //update people's position
 				people.get(i).x -= people.get(i).speed; //update people's position
-				int d = dist(x + WIDTH/2, y + HEIGHT/2, people.get(i).x + 20/2, people.get(i).y + 30/2); //save the distance between player and sick man, add WIDTH/2 and HEIGHT/2 to find the true center
+				int d = dist(x + WIDTH/2, y + HEIGHT/2, people.get(i).x + WIDTH/2, people.get(i).y + HEIGHT/2); //save the distance between player and sick man, add WIDTH/2 and HEIGHT/2 to find the true center
 				if (clock % 4 == 0) //Make it only 15fps so that ways it's not an automatic death
 				{
 					if (d < people.get(i).radius)
-						health -= (int)(Math.ceil(Math.sqrt((people.get(i).radius - d)*people.get(i).sicklevel/4))); //Decrease the health since the player is within the sick range
+					{
+						int val = (int)(Math.ceil(Math.sqrt((people.get(i).radius - d)*people.get(i).sicklevel/4)));
+						health -= val; //Decrease the health since the player is within the sick range
+						hbar.buf((-1)*val); //buf in the appropriate value to animate the health bar
+					}
 				}
-				if (Math.abs(x - people.get(i).x) < 23 && Math.abs(y - people.get(i).y + 10) < 30)
+				//if (Math.abs(x - people.get(i).x) < WIDTH && Math.abs(y - people.get(i).y + 10) < HEIGHT)
+				if (touching(x, y, WIDTH, HEIGHT, people.get(i).x, people.get(i).y, WIDTH, HEIGHT))
 				{
 					people.get(i).x = -100;
 					health -= (people.get(i).sicklevel + 1)*4;
+					hbar.buf((-1)*(people.get(i).sicklevel + 1)*4);
 					changed = true;
 				}
 			}
@@ -372,6 +401,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					people.remove(0);
 				else break;
 			}
+
+			game.repaint();
 		}
 		if (!start)
 		{
@@ -421,6 +452,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	//Find the distance between points (x1, y1) and (x2, y2)
 	int dist(int x1, int y1, int x2, int y2) { return (int)(Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))); }
 
+	//Find out if two rectangles of area are touching
+	boolean touching(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
+	{
+		if (x1 < x2+w2 && x1+w1 > x2 && y1 < y2+h2 && y1+h1 > y2)
+			return true;
+		else return false;
+	}
+
 	class Item implements Comparator<Item>, Comparable<Item>
 	{
 		//This is a class that makes the data structure called Item, adopted from C++'s pair
@@ -467,7 +506,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			this.y = y;
 			this.sicklevel = sicklevel;
 			this.speed = (int)((Math.log(8-sicklevel)+5)/3);
-			this.radius = 5*(sicklevel)+(int)(Math.random()*sicklevel);
+			if(sicklevel!=0)
+			{
+				this.radius = 5*(sicklevel)+(int)(Math.random()*(sicklevel+timecount)+timecount);
+				//System.out.println("Radius of LVL" + sicklevel + ": " + this.radius);
+			}
+            else
+				this.radius = 0;
 			if (sicklevel == 1) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan1.png");
 			else if (sicklevel == 2) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan2.png");
 			else if (sicklevel == 3) img = Toolkit.getDefaultToolkit().getImage("img/SickPeople/SickMan3.png");
@@ -488,7 +533,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		}
 	}
 
-	class masterLoop implements Runnable
+	class MyTimer implements Runnable
 	{
 		private double ups = 60, fps = 60, lastUpdate = System.nanoTime(), lastRender = System.nanoTime();
 		private int maxRenderDelay = 2;
@@ -499,7 +544,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			while (running)
 			{
 				curTime = System.nanoTime();  //update current time
-				int updateNum = 0;    //keeps in track of skipeped updates
+				int updateNum = 0;	//keeps in track of skipeped updates
 				while (curTime - lastUpdate > tPerUps && updateNum < maxRenderDelay)
 				{
 					update();   //all collision, spawning, movment calculations in this update method.
@@ -520,5 +565,41 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			}
 		}
 	}
+
+	class MyBuffer
+	{   
+		//a class made to handle smooth transitions using a buffer
+		public int buf, value;
+		public double speed;
+		public MyBuffer(int init, double rate)
+		{
+			if (rate < 0 || rate >= 1)
+				throw new IllegalArgumentException("Illegal speed. Speed must be a positive double bellow one");
+			value = init;
+			buf = 0;
+			speed = rate;
+		}
+
+		//change the buf value so that the right amount will be animated
+		public final void buf(int input) { buf += input; }
+
+		public final void timeStep()
+		{
+			//this method is to be used in your update method.
+			//by calling this in your update method, you notify this animation to "move" a little
+			int trans = 0;  //the value to be tranfered. It is int because double is inherently inprecise)
+			if (buf > 0)  //two sperate equation for subtration and addition
+				trans = Math.min((int) (speed * buf) + 1, buf);  //calculate the value to be tranfered in this frame
+			if (buf < 0)
+				trans = Math.max((int) (speed * buf) - 1, buf);  //the extra 1 is so when tran gets bellow 1, it wont simply stop tranfering the remaining buf.
+			value += trans;  //tranfer the value
+			buf -= trans;
+		}
+		public final int getAbsValue()
+		{
+			return buf + value;   //the true value the anime is currently moving towards
+		}
+	}
+
 }
 
