@@ -16,4 +16,8 @@ This will compile all the programs, and create the class file. Then, to run the 
 
     java Runner
 
-
+### Gameplay
+Here's a preview:
+    ![Sick Nick Gameplay Preview](https://raw.github.com/michael153/Sick-Nick/master/Gameplay.png)
+### Controls
+<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move
