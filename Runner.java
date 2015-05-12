@@ -62,9 +62,6 @@ class SickNick extends JPanel implements ActionListener
 	public void actionPerformed(ActionEvent e)
 	{
 		if (e.getSource() == a.play)
-		{
 			cards.show(all, "pb");
-			pb.requestFocus(); //requestFocus so that the KeyListener can be used
-		}
 	}
 }

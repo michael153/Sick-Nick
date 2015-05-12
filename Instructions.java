@@ -29,7 +29,7 @@ public class Instructions extends JPanel implements ActionListener
 	private JLabel title1, title2, instr1, instr2;
 	private JPanel all, page1, ph1, page2, ph2;
 	private JButton quit1, next, quit2, back;
-	public JButton play;
+	public JButton play, home1, home2;
 
 	public Instructions()
 	{
@@ -52,38 +52,69 @@ public class Instructions extends JPanel implements ActionListener
 		//initialize the panel containing the buttons in FlowLayout form for page1
 		ph1 = new JPanel();
 		ph1.setPreferredSize(new Dimension(1280, 80));
-		ph1.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		ph1.setLayout(null);
+		//ph1.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		
+		JPanel pph1_1 = new JPanel();
+		pph1_1.setPreferredSize(new Dimension(640, 80));
+		pph1_1.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+		JPanel pph2_1 = new JPanel();
+		pph2_1.setPreferredSize(new Dimension(640, 80));
+		pph2_1.setLayout(new FlowLayout(FlowLayout.RIGHT));
+
 		//instantiate the buttons & description area, and add them in the appropriate layout
 		quit1 = new JButton("Quit");
 		next = new JButton("Next");
+		home1 = new JButton("Back to Homepage");
 		instr1 = new JLabel(str1);
-		
+
 		//instantiate the jlabel of the title of this page
 		title1 = new JLabel("Sick Nick", SwingConstants.CENTER);
 		title1.setFont(new Font("Futura", Font.PLAIN, 75));
 		
 		//the panel that holds everything in the center
 		JPanel C1 = new JPanel();
-		
+
 		//C1.setPreferredSize(new Dimension(700, 700));
 		instr1.setPreferredSize(new Dimension(700, 500));
 		C1.add(instr1);
+		
 		page1.add(title1, BorderLayout.NORTH);
 		page1.add(C1, BorderLayout.CENTER);
-		ph1.add(quit1);
-		ph1.add(next);
+		
+		pph1_1.add(home1);
+		pph2_1.add(quit1);
+		pph2_1.add(next);
+
+		ph1.add(pph1_1);
+		ph1.add(pph2_1);
+		pph1_1.setBounds(0, 0, 640, 80);
+		pph2_1.setBounds(640, 0, 640, 80);
+
 		page1.add(ph1, BorderLayout.SOUTH);
 
 		//initialize the panel containing the buttons in FlowLayout form for page2
 		ph2 = new JPanel();
 		ph2.setPreferredSize(new Dimension(1280, 80));
-		ph2.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		ph2.setLayout(null);
+		//ph2.setLayout(new FlowLayout(FlowLayout.LEFT));
+		
+		//left aligned panel holding "Back to Homepage" button
+		JPanel pph1_2 = new JPanel();
+		pph1_2.setPreferredSize(new Dimension(640, 80));
+		pph1_2.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+		//right aligned panel holding other buttons
+		JPanel pph2_2 = new JPanel();
+		pph2_2.setPreferredSize(new Dimension(640, 80));
+		pph2_2.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		
 		//instantiate the buttons for page2, and add them using BorderLayout.SOUTH
 		quit2 = new JButton("Quit");
 		back = new JButton("Back");
 		play = new JButton("Play Game");
+		home2 = new JButton("Back to Homepage");
 		
 		//title for 2nd page
 		title2 = new JLabel("Sick Nick", SwingConstants.CENTER);
@@ -96,7 +127,7 @@ public class Instructions extends JPanel implements ActionListener
 		JLabel tissue = new JLabel("Tissues: Increases health x15%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Tissue.png")), JLabel.LEFT);
 		JLabel shoes = new JLabel("Sturdy Shoes: Increases speed", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Shoes.png")), JLabel.LEFT);
 		JLabel bottle = new JLabel("Hand Sanitizer: Increases health x20%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Bottle.png")), JLabel.LEFT);
-		JLabel gloves = new JLabel("Gloves: Increases health x25%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Gloves.png")), JLabel.LEFT);
+		JLabel gloves = new JLabel("Gloves: Punch sick people, gain 3% health per punch", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Gloves.png")), JLabel.LEFT);
 		JLabel glasses = new JLabel("Glasses: Increases vision, see areas of sickness", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Glasses.png")), JLabel.LEFT);
 		JLabel mask = new JLabel("Face Mask: Increases health x50%", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/Mask.png")), JLabel.LEFT);
 		JLabel b1 = new JLabel("<html>Healthy</html>", new ImageIcon(Toolkit.getDefaultToolkit().getImage("img/B1.jpg")), JLabel.LEFT);
@@ -136,9 +167,18 @@ public class Instructions extends JPanel implements ActionListener
 		
 		page2.add(title2, BorderLayout.NORTH);
 		page2.add(jsp, BorderLayout.CENTER);
-		ph2.add(quit2);
-		ph2.add(back);
-		ph2.add(play);
+
+		pph1_2.add(home2);
+		pph2_2.add(quit2);
+		pph2_2.add(back);
+		pph2_2.add(play);
+
+		//ph2 is entire bottom (south) container, holding a left and right panel
+		ph2.add(pph1_2);
+		ph2.add(pph2_2);
+		pph1_2.setBounds(0, 0, 640, 80);
+		pph2_2.setBounds(640, 0, 640, 80);
+
 		page2.add(ph2, BorderLayout.SOUTH);
 
 		//add ActionListeners to the buttons
@@ -147,6 +187,9 @@ public class Instructions extends JPanel implements ActionListener
 		quit2.addActionListener(this);
 		play.addActionListener(this);
 		back.addActionListener(this);
+		home1.addActionListener(this);
+		home2.addActionListener(this);
+
 		//add the page panels to the panel holding everything (all), which uses cardpanel
 		all.add(page1, "page1");
 		all.add(page2, "page2");

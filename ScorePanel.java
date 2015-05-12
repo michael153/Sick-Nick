@@ -3,15 +3,12 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
-public class ScorePanel extends JPanel implements ActionListener
+public class ScorePanel extends JPanel
 {
 	private Image hisc;
-	private JButton quit;
 	private ScoreHandler sh;
 	private JLabel game, numplays, llabel;
-	private JPanel list1, list2, list3, bpanel;
-	//this will be public so that the main program can also access this button
-	public JButton replay;
+	private JPanel list1, list2, list3;
 
 	public ScorePanel(int s, String curname)
 	{	
@@ -44,12 +41,6 @@ public class ScorePanel extends JPanel implements ActionListener
 			numplays = new JLabel(sh.times + " games played", SwingConstants.CENTER);
 		numplays.setForeground(Color.gray); //set the text color to gray
 
-		//instantiate the buttons at the bottom right (quit, and play again)
-		replay = new JButton("Play Again");
-		replay.setPreferredSize(new Dimension(120, 30));
-		quit = new JButton("Quit");
-		quit.setPreferredSize(new Dimension(80, 30));
-		
 		//list1, 2, 3 are panels that will contain all the list of scores in a
 		//320x320 box, each high score is 320x64 large  
 		list1 = new JPanel();
@@ -63,13 +54,6 @@ public class ScorePanel extends JPanel implements ActionListener
 		list3 = new JPanel();
 		list3.setPreferredSize(new Dimension(120, 320));
 		list3.setLayout(null);
-
-		//bpanel (Button panel) holds the bottom right panels, bpanel will be
-		//added to the bottom of ScorePanel, so the buttoms are in the bottom right
-		bpanel = new JPanel();
-		bpanel.setPreferredSize(new Dimension(640, 60));
-		//set to FlowLayout(FlowLayout.RIGHT) so the buttons are right justified
-		bpanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
 		//for loop to add the 5 top scores into list, the panel that holds the scores in
 		//a 320x320 box
@@ -164,16 +148,6 @@ public class ScorePanel extends JPanel implements ActionListener
 			llabel.setBounds(160, 90, 320, 40);
 			numplays.setBounds(160, 460, 320, 40);
 		}
-		
-		//add in the bottom right buttons
-		bpanel.add(quit);
-		bpanel.add(replay);
-		quit.addActionListener(this);
-		replay.addActionListener(this);
-
-		//add in bpanel and using setBounds, draw bpanel on the ScorePanel
-		add(bpanel);
-		bpanel.setBounds(0, 580, 640, 60);
 	}
 
 	public void paintComponent(Graphics g)
@@ -184,14 +158,6 @@ public class ScorePanel extends JPanel implements ActionListener
 		if (sh.hi) //draw hiscore image only if it actually is a high score
 			g.drawImage(hisc, 259, 60, 122, 122, this);
 	}
-
-	public void actionPerformed(ActionEvent e)
-	{
-		//if the buttom that triggered this method is quit, then exit the program
-		if (e.getSource() == quit)
-			System.exit(0);
-	}
-
 }
 
 

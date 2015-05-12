@@ -11,11 +11,12 @@ import java.awt.image.BufferedImage;
 
 public class HomePage extends JPanel implements ActionListener, MouseListener
 {
-	private JPanel master, ctrs0, ctrs1, ctrs2;
+	private JPanel master, ctrs0, ctrs1, ctrs2, ctrs3;
 	private CardLayout cards; //Runner will display a HomePage, which will contain all the other classes
 	private JPanel home;
 	private Instructions instr;
 	private GamePanel gme;
+	private Diseases dis;
 	private boolean b1, b2, b3, b4, rx, inhome = true;
 
 	//these images are used for the backgrounds
@@ -27,14 +28,16 @@ public class HomePage extends JPanel implements ActionListener, MouseListener
 		master = new JPanel();
 		master.setLayout(cards);
 
-		ctrs0 = new JPanel(); //ctrs1 will be the container that holds the Homepage panel
+		ctrs0 = new JPanel(); //ctrs0 will be the container that holds the Homepage panel
 		ctrs1 = new JPanel(); //ctrs1 will be the container that holds the Instructions panel
 		ctrs2 = new JPanel(); //ctrs2 will be the container that holds the Game panel
+		ctrs3 = new JPanel(); //ctrs3 will be the container that holds the Disease panel
 
 		//make sure that the size of the containers is 1280x720
 		ctrs0.setPreferredSize(new Dimension(1280, 720));
 		ctrs1.setPreferredSize(new Dimension(1280, 720));
 		ctrs2.setPreferredSize(new Dimension(1280, 720));
+		ctrs3.setPreferredSize(new Dimension(1280, 720));
 
 		bkg = Toolkit.getDefaultToolkit().getImage("img/homepage.png");
 		btnbkg = Toolkit.getDefaultToolkit().getImage("img/Effects/button_texture.png");
@@ -74,6 +77,7 @@ public class HomePage extends JPanel implements ActionListener, MouseListener
 
 		instr = new Instructions();
 		gme = new GamePanel();
+		dis = new Diseases();
 
 		gme.home0.addActionListener(this); //add an action listener to this button to know when to go back to homepage
 
@@ -121,14 +125,13 @@ public class HomePage extends JPanel implements ActionListener, MouseListener
 		ctrs0.add(home);
 		ctrs1.add(instr);
 		ctrs2.add(gme);
-		//set names for the containers so we can access them later
-		ctrs0.setName("ctrs0");
-		ctrs1.setName("ctrs1");
-		ctrs2.setName("ctrs2");
+		ctrs3.add(dis);
+
 		//add the containers to master panel, along with their strings
 		master.add(ctrs0, "ctrs0");
 		master.add(ctrs1, "ctrs1");
 		master.add(ctrs2, "ctrs2");
+		master.add(ctrs3, "ctrs3");
 		add(master);
 		addMouseListener(this); //add mouselistener to see if user clicks on "buttons"/rectangles
 	}
@@ -162,7 +165,7 @@ public class HomePage extends JPanel implements ActionListener, MouseListener
 			b3 = true;
 		if (x >= 452+180+14 && x <= 452+180+14+180 && y >= 280+35+10+35+50 && y <= 280+35+10+35+50+35 && inhome) //4th button
 			b4 = true;
-		if (x >= 1280-5-15 && x <= 1280-5 && y >= 710-15-12 && y <= 710-15 && inhome)
+		if (x >= 1280-5-12 && x <= 1280-5 && y >= 710-15-12 && y <= 710-15 && inhome)
 			rx = true;
 		home.repaint();
 	}
@@ -191,6 +194,11 @@ public class HomePage extends JPanel implements ActionListener, MouseListener
 		if (x >= 452 && x <= 452+376 && y >= 280+35+10 && y <= 280+35+10+35 && inhome) //2nd button
 		{
 			cards.show(master, "ctrs1");
+			inhome = false;
+		}
+		if (x >= 452 && x <= 452+180 && y >= 280+35+10+35+50 && y <= 280+35+10+35+50+35 && inhome) //3rd button
+		{
+			cards.show(master, "ctrs3");
 			inhome = false;
 		}
 		if (x >= 1280-5-12 && x <= 1280-5 && y >= 710-15-12 && y <= 710-15 && inhome) //Quit the game
