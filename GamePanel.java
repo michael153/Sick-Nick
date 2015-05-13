@@ -18,10 +18,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	private String name; //this will be the name of the player playing right now
 	private ArrayList<Item> powerloc = new ArrayList<Item>();
 	private ArrayList<People> people = new ArrayList<People>();
-	private Stack<Integer> notify = new Stack<Integer>();
-	private boolean[] powerdraw = new boolean[7];
+	private int[] powerdraw = new int[7];
+
 	private Image[] powerimg_on = new Image[7]; //these will be used to draw the flashing indicators at the top of the game
-	private Image[] powerimg_off = new Image[7]; //these will be used to draw the flashing indicators at the top of the game
+	private Image[] powerimg_off = new Image[7]; //these will be used to draw the "dead" indicators at the top of the game
+	private Image[] powerimg_end = new Image[7]; //these will be used to draw the end/warning indicators at the top of the game
 
 	private boolean pill = false;
 	private boolean pilluse = false;
@@ -79,25 +80,32 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 
 		//initialize all the images used for the indication of the power ups
 		powerimg_on[0] = Toolkit.getDefaultToolkit().getImage("img/Tissue.png");
-		powerimg_off[0] = Toolkit.getDefaultToolkit().getImage("img/Effects/Tissue_off.png");
+		powerimg_off[0] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Tissue_off.png");
+		powerimg_end[0] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Tissue_end.png");
 		
 		powerimg_on[1] = Toolkit.getDefaultToolkit().getImage("img/Shoes.png");
-		powerimg_off[1] = Toolkit.getDefaultToolkit().getImage("img/Effects/Shoes_off.png");
-		
+		powerimg_off[1] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Shoes_off.png");
+		powerimg_end[1] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Shoes_end.png");
+
 		powerimg_on[2] = Toolkit.getDefaultToolkit().getImage("img/Bottle.png");
-		powerimg_off[2] = Toolkit.getDefaultToolkit().getImage("img/Effects/Bottle_off.png");
+		powerimg_off[2] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Bottle_off.png");
+		powerimg_end[2] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Bottle_end.png");
 		
 		powerimg_on[3] = Toolkit.getDefaultToolkit().getImage("img/Gloves.png");
-		powerimg_off[3] = Toolkit.getDefaultToolkit().getImage("img/Effects/Gloves_off.png");
+		powerimg_off[3] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Gloves_off.png");
+		powerimg_end[3] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Gloves_end.png");
 		
 		powerimg_on[4] = Toolkit.getDefaultToolkit().getImage("img/Glasses.png");
-		powerimg_off[4] = Toolkit.getDefaultToolkit().getImage("img/Effects/Glasses_off.png");
+		powerimg_off[4] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Glasses_off.png");
+		powerimg_end[4] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Glasses_end.png");
 		
 		powerimg_on[5] = Toolkit.getDefaultToolkit().getImage("img/Mask.png");
-		powerimg_off[5] = Toolkit.getDefaultToolkit().getImage("img/Effects/Mask_off.png");
+		powerimg_off[5] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Mask_off.png");
+		powerimg_end[5] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Mask_end.png");
 		
 		powerimg_on[6] = Toolkit.getDefaultToolkit().getImage("img/Pill.png");
-		powerimg_off[6] = Toolkit.getDefaultToolkit().getImage("img/Effects/Pill_off.png");
+		powerimg_off[6] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Pill_off.png");
+		powerimg_end[6] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Pill_end.png");
 
 		game = new JPanel()
 		{
@@ -159,16 +167,18 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 
 					//if the powerimg is disabled, then draw the faded version
 					for (int i = 0; i < 7; i++)
-						if (!powerdraw[i])
+						if (powerdraw[i] == 0)
 							g.drawImage(powerimg_off[i], 10 + i*40, 40, 32, 32, this);
 
 					//otherwise, draw the light version that symbolizes it's on
 					for (int i = 0; i < 7; i++)
 					{
-						if (powerdraw[i])
+						if (powerdraw[i] == 1)
 							g.drawImage(powerimg_on[i], 10 + i*40, 40, 32, 32, this);
-						if (i == 6 && pill)
-							g.drawImage(powerimg_on[i], 10 + i*40, 40, 32, 32, this);
+						//if (i == 6 && pill)
+						//	g.drawImage(powerimg_on[i], 10 + i*40, 40, 32, 32, this);
+						if (powerdraw[i] == 2)
+							g.drawImage(powerimg_end[i], 10 + i*40, 40, 32, 32, this);
 					}
 
 					for (int i = 0; i < people.size(); i++) //as time goes on, move sick people to the left x pixels
@@ -281,15 +291,17 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			if (e.getSource() == powertime[i])
 			{
 				pclock[i]++;
-				powerdraw[i] = true;
+				powerdraw[i] = 1;
 				if (i == 6)
 				{
 					if (pclock[i] % 4 == 0)
-						powerdraw[i] = true;
+						powerdraw[i] = 1;
 					if (pclock[i] % 4 == 2)
-						powerdraw[i] = false;
+						powerdraw[i] = 0;
 				}
-				//System.out.println(i + ": " + pclock[i]);
+				if (powerdraw[i] != 0) //make sure if it's 0, it stays 0
+					if (pclock[i] >= 85)
+						powerdraw[i] = 2;
 				if (pclock[i] >= 100) //it has already been 10 seconds, and the power up should've disappeared
 				{
 					if (i == 0) tissue = false;
@@ -303,7 +315,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 						pill = false;
 						pilluse = false;
 					}
-					powerdraw[i] = false;
+					powerdraw[i] = 0;
 					powertime[i].stop();
 				}
 			}
@@ -397,56 +409,40 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 						tissue = true;
 						hbar.buf(Math.min(((int)(Math.ceil(health*1.15))), 100) - health); //find the change of health to add
 						health = Math.min((int)(Math.ceil(health*1.15)), 100); //increase health by 15%, but make sure it doesn't go over 100
-						notify.add(0);
 					}
 					else if (type == 1)
-					{
 						shoes = true;
-						notify.add(1);
-					}
 					else if (type == 2)
 					{
 						bottle = true;
 						hbar.buf(Math.min(((int)(Math.ceil(health*1.2))), 100) - health); //find the change of health to add
 						health = Math.min((int)(Math.ceil(health*1.2)), 100); //increase health by 20%, make sure doesn't top 100
-						notify.add(2);
 					}
 					else if (type == 3)
-					{
 						gloves = true;
-						notify.add(3);
-					}
 					else if (type == 4)
-					{
 						glasses = true;
-						notify.add(4);
-					}
 					else if (type == 5)
 					{
 						mask = true;
 						hbar.buf(Math.min(((int)(Math.ceil(health*1.5))), 100) - health); //find the change of health to add
 						health = Math.min((int)(Math.ceil(health*1.5)), 100); //increase healthy by 50%
-						notify.add(5);
 					}
 					else if (type == 6)
 					{
 						pill = true;
-						notify.add(6);
-
+						pilluse = false;
+						powerdraw[6] = 1;
+						powertime[6].stop();
 					}
-					//while (notify.size() > 6)
-						//notify.remove();
 					powerloc.set(i, new Item(-100, -100, type)); //set it to unvisible, do not delete b/c deleting will mess up indexing
 					hbar.buf(Math.min(10, 100-health));
 					health = Math.min(health+10, 100); //ambigous effect no matter which one
 					changed = true;
+					pclock[powerloc.get(i).t] = 0;
 					//simple, automatically start timer
 					if (powerloc.get(i).t != 6)
-					{
-						pclock[powerloc.get(i).t] = 0;
 						powertime[powerloc.get(i).t].start();
-					}
-					else if (!pilluse) pclock[powerloc.get(i).t] = 0;
 				}
 			}
 			if (changed)
