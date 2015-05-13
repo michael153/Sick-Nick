@@ -20,7 +20,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	private ArrayList<People> people = new ArrayList<People>();
 	private Stack<Integer> notify = new Stack<Integer>();
 	private boolean[] powerdraw = new boolean[7];
-	private int[] powercount = new int[7];
 	private Image[] powerimg_on = new Image[7]; //these will be used to draw the flashing indicators at the top of the game
 	private Image[] powerimg_off = new Image[7]; //these will be used to draw the flashing indicators at the top of the game
 
@@ -97,8 +96,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		powerimg_on[5] = Toolkit.getDefaultToolkit().getImage("img/Mask.png");
 		powerimg_off[5] = Toolkit.getDefaultToolkit().getImage("img/Effects/Mask_off.png");
 		
-		powerimg_on[6] = Toolkit.getDefaultToolkit().getImage("img/pill.png");
-		powerimg_off[6] = Toolkit.getDefaultToolkit().getImage("img/Effects/pill_off.png");
+		powerimg_on[6] = Toolkit.getDefaultToolkit().getImage("img/Pill.png");
+		powerimg_off[6] = Toolkit.getDefaultToolkit().getImage("img/Effects/Pill_off.png");
 
 		game = new JPanel()
 		{
@@ -163,10 +162,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 						if (!powerdraw[i])
 							g.drawImage(powerimg_off[i], 10 + i*40, 40, 32, 32, this);
 
-					//otherwise, draw the light version that blinks
+					//otherwise, draw the light version that symbolizes it's on
 					for (int i = 0; i < 7; i++)
+					{
 						if (powerdraw[i])
 							g.drawImage(powerimg_on[i], 10 + i*40, 40, 32, 32, this);
+						if (i == 6 && pill)
+							g.drawImage(powerimg_on[i], 10 + i*40, 40, 32, 32, this);
+					}
 
 					for (int i = 0; i < people.size(); i++) //as time goes on, move sick people to the left x pixels
 					{
@@ -278,10 +281,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			if (e.getSource() == powertime[i])
 			{
 				pclock[i]++;
-				if (pclock[i] % 5 == 0)
-					powerdraw[i] = true;
-				if (pclock[i] % 5 == 2)
-					powerdraw[i] = false;
+				powerdraw[i] = true;
+				if (i == 6)
+				{
+					if (pclock[i] % 4 == 0)
+						powerdraw[i] = true;
+					if (pclock[i] % 4 == 2)
+						powerdraw[i] = false;
+				}
 				//System.out.println(i + ": " + pclock[i]);
 				if (pclock[i] >= 100) //it has already been 10 seconds, and the power up should've disappeared
 				{
@@ -291,8 +298,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					else if (i == 3) gloves = false;
 					else if (i == 4) glasses = false;
 					else if (i == 5) mask = false;
-					else if (i == 6) pill = false;
-					powercount[i] = 0;
+					else if (i == 6)
+					{
+						pill = false;
+						pilluse = false;
+					}
 					powerdraw[i] = false;
 					powertime[i].stop();
 				}
@@ -404,8 +414,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					else if (type == 3)
 					{
 						gloves = true;
-						powercount[3] = 0;
-						//glovecount = 0;
 						notify.add(3);
 					}
 					else if (type == 4)
@@ -423,8 +431,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					else if (type == 6)
 					{
 						pill = true;
-						//pillcount = 0;
-						powercount[6] = 0;
 						notify.add(6);
 
 					}
@@ -434,8 +440,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					hbar.buf(Math.min(10, 100-health));
 					health = Math.min(health+10, 100); //ambigous effect no matter which one
 					changed = true;
-					pclock[powerloc.get(i).t] = 0;
-					powertime[powerloc.get(i).t].start();
+					//simple, automatically start timer
+					if (powerloc.get(i).t != 6)
+					{
+						pclock[powerloc.get(i).t] = 0;
+						powertime[powerloc.get(i).t].start();
+					}
+					else if (!pilluse) pclock[powerloc.get(i).t] = 0;
 				}
 			}
 			if (changed)
@@ -568,6 +579,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			{
 				pilluse = true;
 				pill = false;
+				powertime[6].start(); //the pill has been used, so start the timer
 			}
 		}
 	}
