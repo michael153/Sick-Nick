@@ -1,6 +1,6 @@
 # Sick-Nick
 Under construction. <br/>
-Current Version: v1.0.8 <br/>
+Current Version: v1.1.2 <br/>
 Coded with help from  <a href="https://github.com/nathanang2000/">@nathanang2000</a> and <a href="https://github.com/jerr060599/">@jerr060599</a><br/>
 <br/>
 Current Agenda: <br/>
@@ -10,11 +10,11 @@ Current Agenda: <br/>
 ### Compilation
 After downloading all the files into a directory, type in the following command:
 
-    javac Runner.java GamePanel.java Instructions.java ScorePanel.java ScoreHandler.java Pair.java
+    javac SickNick.java GamePanel.java Instructions.java ScorePanel.java ScoreHandler.java Pair.java
 
 This will compile all the programs, and create the class file. Then, to run the program, type:
 
-    java Runner
+    java SickNick
 
 ### Gameplay
 Here's a preview:
