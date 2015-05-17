@@ -85,10 +85,12 @@ public class HomePage extends JPanel implements ActionListener, MouseListener
 		instr.home1.addActionListener(this); //add an action listener to this button to know when to go back to homepage
 		instr.home2.addActionListener(this); //add an action listener to this button to know when to go back to homepage
 
+		dis.home3.addActionListener(this); //add an action listener to this button to know when to go back to homepage
+
 		//create the home panel
 		home.setLayout(null);
 		home.setPreferredSize(new Dimension(1280, 720));
-		
+
 		//initialize the labels that will correspond with the rects/buttons
 		JLabel title = new JLabel("Sick Nick", SwingConstants.CENTER);
 		JLabel btn1 = new JLabel("Play Game", SwingConstants.CENTER);
@@ -101,7 +103,7 @@ public class HomePage extends JPanel implements ActionListener, MouseListener
 		btn2.setFont(new Font("Futura", Font.PLAIN, 28));
 		btn3.setFont(new Font("Futura", Font.PLAIN, 15));
 		btn4.setFont(new Font("Futura", Font.PLAIN, 15));
-		
+
 		btn1.setForeground(new Color(236, 236, 236)); //Set the font color to off-white so that it's contrasting
 		btn2.setForeground(new Color(236, 236, 236)); //Set the font color to off-white so that it's contrasting
 		btn3.setForeground(new Color(236, 236, 236)); //Set the font color to off-white so that it's contrasting
@@ -145,7 +147,7 @@ public class HomePage extends JPanel implements ActionListener, MouseListener
 	{
 		if (e.getSource() == instr.play)
 			cards.show(master, "ctrs2"); //display the game
-		if (e.getSource() == gme.home0 || e.getSource() == instr.home1 || e.getSource() == instr.home2)
+		if (e.getSource() == gme.home0 || e.getSource() == instr.home1 || e.getSource() == instr.home2 || e.getSource() == dis.home3)
 		{
 			cards.show(master, "ctrs0"); //display homepage since that is what's being requested
 			inhome = true; //back to homepage, set this to true

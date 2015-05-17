@@ -11,18 +11,18 @@ import java.awt.image.BufferedImage;
 
 public class GamePanel extends JPanel implements ActionListener, KeyListener
 {
-	private int fieldpos, ms, x, y, health, score, offset, count, clock, wave, timecount, difficulty = 4;
+	private int fieldpos, x, y, health, score, offset, clock, timecount = 1, difficulty = 4;
 	//start marks the game has started, end marks if the game has ended, running is if the master timer is running, w is true if w is pressed, a is true if a is pressed, etc.
-	private boolean start, end, running, w, a, s, d;
-	private boolean tissue, shoes, bottle, gloves, glasses, mask, player = false; //will be true if the power up is currently being used
+	private boolean start, end, running, w, a, s, d; //apocalypse marks if the apocalypse has started
+	private boolean tissue, shoes, bottle, gloves, glasses, mask, player, firstapo; //will be true if the power up is currently being used
 	private String name; //this will be the name of the player playing right now
 	private ArrayList<Item> powerloc = new ArrayList<Item>();
 	private ArrayList<People> people = new ArrayList<People>();
-	private int[] powerdraw = new int[7];
+	private boolean[] powerdraw = new boolean[8]; //powerdraw[7] corresponds to the drawing of the apocalypse
 
-	private Image[] powerimg_on = new Image[7]; //these will be used to draw the flashing indicators at the top of the game
-	private Image[] powerimg_off = new Image[7]; //these will be used to draw the "dead" indicators at the top of the game
-	private Image[] powerimg_end = new Image[7]; //these will be used to draw the end/warning indicators at the top of the game
+	private Image[] powerimg_on = new Image[8]; //these will be used to draw the flashing indicators at the top of the game
+	private Image[] powerimg_off = new Image[8]; //these will be used to draw the "dead" indicators at the top of the game
+	private int[] power_used = new int[8];
 
 	private boolean pill = false;
 	private boolean pilluse = false;
@@ -34,9 +34,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 
 	private Image bg;
 	private javax.swing.Timer master, pplgen, powergen;
-	private javax.swing.Timer[] powertime = new javax.swing.Timer[7];
+	private javax.swing.Timer[] powertime = new javax.swing.Timer[8];
 
-	private int[] pclock = new int[7];
+	private int[] pclock = new int[8];
 
 	private JPanel bpanel; //panel used to hold buttons after gameover
 	public ScorePanel after; //make this public so that HomePage can access a button in this
@@ -50,7 +50,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	private final int HEIGHT = 43;
 	private final int LANE_WIDTH = 54; //the width of each "row" in game, game is composed of 10 rows to easily organize things
 
-	private void startLoop() { masterT.start(); } //<--use this to start the loop/new timer
+	private void startLoop() { running = true; } //use this to start the loop/new timer
 	private void stopLoop() { running = false; } // use this to stop it.
 
 	public GamePanel()
@@ -62,7 +62,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		pplgen = new javax.swing.Timer(6000, this); //Refreshes every 6 seconds
 		hbar = new MyBuffer(100, 0.15); //initializing MyBuffer, starts of at 100, and transitions at a speed of 0.15
 
-		for (int i = 0; i < 7; i++)
+		for (int i = 0; i < 8; i++)
 			powertime[i] = new javax.swing.Timer(1000/10, this); //10 FPS, each power up lasts 10 seconds, so 10*10 frames
 
 		start = false;
@@ -76,36 +76,34 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		//which will be the 3 + 4 = 7th row
 		//initial position of Sick Nick (x, y)
 		x = 450;
-		y = 6*LANE_WIDTH + LANE_WIDTH/2 - 5; //it is pass 6 rows, and half way through one row, but we must subtract 5 because this is the top right corner
+		y = 6*LANE_WIDTH + LANE_WIDTH/2 - HEIGHT/2; //it is 6.5 rows down, but we must subtract HEIGHT/2 because this is the top right corner
+
+		for (int i = 0; i < 8; i++)
+			power_used[i] = -1;
 
 		//initialize all the images used for the indication of the power ups
 		powerimg_on[0] = Toolkit.getDefaultToolkit().getImage("img/Tissue.png");
 		powerimg_off[0] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Tissue_off.png");
-		powerimg_end[0] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Tissue_end.png");
-		
+
 		powerimg_on[1] = Toolkit.getDefaultToolkit().getImage("img/Shoes.png");
 		powerimg_off[1] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Shoes_off.png");
-		powerimg_end[1] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Shoes_end.png");
 
 		powerimg_on[2] = Toolkit.getDefaultToolkit().getImage("img/Bottle.png");
 		powerimg_off[2] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Bottle_off.png");
-		powerimg_end[2] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Bottle_end.png");
-		
+
 		powerimg_on[3] = Toolkit.getDefaultToolkit().getImage("img/Gloves.png");
 		powerimg_off[3] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Gloves_off.png");
-		powerimg_end[3] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Gloves_end.png");
-		
+
 		powerimg_on[4] = Toolkit.getDefaultToolkit().getImage("img/Glasses.png");
 		powerimg_off[4] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Glasses_off.png");
-		powerimg_end[4] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Glasses_end.png");
-		
+
 		powerimg_on[5] = Toolkit.getDefaultToolkit().getImage("img/Mask.png");
 		powerimg_off[5] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Mask_off.png");
-		powerimg_end[5] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Mask_end.png");
-		
+
 		powerimg_on[6] = Toolkit.getDefaultToolkit().getImage("img/Pill.png");
 		powerimg_off[6] = Toolkit.getDefaultToolkit().getImage("img/Effects/Off/Pill_off.png");
-		powerimg_end[6] = Toolkit.getDefaultToolkit().getImage("img/Effects/End/Pill_end.png");
+		
+		powerimg_on[7] = Toolkit.getDefaultToolkit().getImage("img/Apo.png");
 
 		game = new JPanel()
 		{
@@ -115,29 +113,19 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			private final int LANE_WIDTH = 54;
 			private GradientPaint gp = new GradientPaint(10, 15, Color.RED, 110, 15, Color.GREEN); //gradient for the health bar
 			private DecimalFormat df = new DecimalFormat("0000000000");
-			
+
 			Image nick = Toolkit.getDefaultToolkit().getImage("img/SickNick.png");
 			Image sick = Toolkit.getDefaultToolkit().getImage("img/SickMan.png");
-            
+
 			Color grass = new Color(124, 252, 0); //Color of the foreground, which will look like grass
 			//create game's own paintComponent method so that things can also be drawn in game
-			long tick = System.currentTimeMillis();
-			int fps = 60, curFps = 60;
-			
+
 			public void paintComponent(Graphics g)
 			{
 				super.paintComponent(g);
 				((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); //Smooth out the text
 				if (start)
 				{
-					if (System.currentTimeMillis() - tick >= 1000)
-					{
-						tick = System.currentTimeMillis();
-						fps = curFps;
-                        //System.out.println(fps + " fps");
-						curFps = 0;
-					}
-					curFps++;
 					//draw the grass foreground first, so the other things can layer on top of it
 					g.setColor(grass);
 					g.fillRect(0, 3*LANE_WIDTH, 960, 7*LANE_WIDTH);
@@ -162,23 +150,42 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 
 					g.setColor(Color.BLACK);
 					g.drawString(hbar.value + "% health", 115, 27);
-					
-					g.setColor(new Color(236, 236, 236, 255/2)); //set a white transparency
 
 					//if the powerimg is disabled, then draw the faded version
 					for (int i = 0; i < 7; i++)
-						if (powerdraw[i] == 0)
+						if (!powerdraw[i])
 							g.drawImage(powerimg_off[i], 10 + i*40, 40, 32, 32, this);
 
 					//otherwise, draw the light version that symbolizes it's on
 					for (int i = 0; i < 7; i++)
 					{
-						if (powerdraw[i] == 1)
+						if (powerdraw[i])
+						{
 							g.drawImage(powerimg_on[i], 10 + i*40, 40, 32, 32, this);
-						//if (i == 6 && pill)
-						//	g.drawImage(powerimg_on[i], 10 + i*40, 40, 32, 32, this);
-						if (powerdraw[i] == 2)
-							g.drawImage(powerimg_end[i], 10 + i*40, 40, 32, 32, this);
+							if(i == 6  && !pilluse)
+							{
+								g.setColor(Color.BLACK);
+								g.drawString("Press 'u' to take antibiotics!", 420+i*40 , 40);
+							}
+						}
+					}
+
+					for (int i = 0; i < 7; i++)
+					{
+						if (power_used[i] == -1)
+						{
+							//Draw the entire thing red, to symbolize it was not earned yet
+							g.setColor(Color.RED);
+							g.fillRect(3+10+i*40, 80, 25, 5);
+						}
+						else
+						{
+							//draw the green and red parts based on how much is used
+							g.setColor(Color.GREEN);
+							g.fillRect(3+10+i*40, 80, 25-power_used[i], 5);
+							g.setColor(Color.RED);
+							g.fillRect(3+10+i*40 + 25-power_used[i], 80, power_used[i], 5);
+						}
 					}
 
 					for (int i = 0; i < people.size(); i++) //as time goes on, move sick people to the left x pixels
@@ -190,6 +197,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 							g.drawOval(people.get(i).x+(WIDTH/2) - people.get(i).radius, people.get(i).y+(HEIGHT/2) - people.get(i).radius, 2*people.get(i).radius, 2*people.get(i).radius);
 						}
 					}
+					//draw the apocalypse sign last so that it is layered on top
+					if (powerdraw[7])
+						g.drawImage(powerimg_on[7], 198, 220, 198+564, 220+200, 0, 0, 734, 260, this);
 				}
 			}
 		};
@@ -220,7 +230,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 	{
 		//button falling timer code
 		if (!start && e.getSource() == njt) //only once
-			startLoop();
+			masterT.start();
 
 		//entire panel moving over (it's a moving frame)
 		if (e.getSource() == master)
@@ -239,8 +249,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					hbar.buf(1);
 				health = Math.min(health+1, 100);
 			}
-			if(clock % (100*difficulty) == 0)
+			if(clock % (50*difficulty) == 0)
 				timecount++;
+			//System.out.println(timecount);
 		}
 
 		//generate power up
@@ -268,8 +279,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			//too easy how to make this increase when the game gets harder?
 			int[] weighted = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7};
 			int rval = 10 - 10/(clock+1);
-			int rnum = (rval + timecount + score/10000)/2 + r.nextInt((rval + timecount + score/10000)/2); //# of possible sick people will depend of score and time played (to make it harder)
-			//System.out.println("Upperbound of #people: " + (rval + timecount + score/10000));
+			int rnum = (rval + timecount)/2 + r.nextInt((rval + timecount))/2;  //# of possible sick people will depend of score and time played (to make it harder)
+			if (clock % 100 == 0)
+				System.out.println("rnum: " + rnum);
 			int ry = -1;
 			for (int i = 0; i < rnum; i++) //draw sick people depending on random number
 			{
@@ -284,24 +296,38 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 				int sign[] = {-1, 1};
 				people.add(new People(1300 + sign[(int)(Math.random()*2)]*r.nextInt(300), ry, weighted[r.nextInt(weighted.length)]));
 			}
+			if ((rval + timecount >= 50) && !firstapo)
+			{
+				firstapo = true;
+				powerdraw[7] = true; //it's a apocalypse!
+				pclock[7] = 0;
+				powertime[7].start();
+				timecount += 5; //increase the difficulty
+			}
 		}
 
-		for (int i = 0; i < 7; i++)
+		for (int i = 0; i < 8; i++)
 		{
 			if (e.getSource() == powertime[i])
 			{
 				pclock[i]++;
-				powerdraw[i] = 1;
-				if (i == 6)
-				{
+				powerdraw[i] = true;
+				if (i < 7) //make sure that it doesn't go out of bounds
 					if (pclock[i] % 4 == 0)
-						powerdraw[i] = 1;
-					if (pclock[i] % 4 == 2)
-						powerdraw[i] = 0;
+						power_used[i]++;
+				if (i == 6 || i == 7)
+				{
+					if (pclock[i] % 2 == 0)
+						powerdraw[i] = true;
+					if (pclock[i] % 2 == 1)
+						powerdraw[i] = false;
 				}
-				if (powerdraw[i] != 0) //make sure if it's 0, it stays 0
-					if (pclock[i] >= 85)
-						powerdraw[i] = 2;
+				if (i == 7 && pclock[i] >= 35) //the apocalypse only blinks for 5 seconds
+				{
+					powerdraw[7] = false;
+					powertime[7].stop();
+					pclock[7] = 0;
+				}
 				if (pclock[i] >= 100) //it has already been 10 seconds, and the power up should've disappeared
 				{
 					if (i == 0) tissue = false;
@@ -315,8 +341,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 						pill = false;
 						pilluse = false;
 					}
-					powerdraw[i] = 0;
+					powerdraw[i] = false;
 					powertime[i].stop();
+					//make sure it doesn't go out of bounds
+					if (i != 7) power_used[i] = -1;
 				}
 			}
 		}
@@ -324,7 +352,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		if (end && e.getSource() == quit)
 			System.exit(0);
 		if (end && e.getSource() == replay)
+		{
 			System.out.println("Replay Requested...");
+			reset();
+			//get rid of the panels and containers add to show the GameOver slide
+			remove(after);
+			remove(bpanel);
+			//...
+		}
 	}
 
 	//the new timer will trigger this method, running at around 60fps
@@ -362,16 +397,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			if ((x < -1*WIDTH - SPEED/2) || hbar.value <= 0) //you lose, too far to the left, the SPEED/2 serves as a leniency
 			{
 				System.out.println("Game Over!");
-				end = true;
+				end = true; //set this to true in order to enable other buttons
+				player = false;
 
+				stopLoop();
 				master.stop();
 				pplgen.stop();
 				powergen.stop();
 
-				player = false;
-				game.setVisible(false);
+				game.setVisible(false); //set gamepanel to invisible
 				home0.setVisible(true); //bring back the home button
-				remove(game); //destroy the gamepanel so that it's not still running in the background
 
 				quit = new JButton("Quit");
 				replay = new JButton("Play Again");
@@ -432,7 +467,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					{
 						pill = true;
 						pilluse = false;
-						powerdraw[6] = 1;
+						powerdraw[6] = true;
 						powertime[6].stop();
 					}
 					powerloc.set(i, new Item(-100, -100, type)); //set it to unvisible, do not delete b/c deleting will mess up indexing
@@ -443,6 +478,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 					//simple, automatically start timer
 					if (powerloc.get(i).t != 6)
 						powertime[powerloc.get(i).t].start();
+					power_used[powerloc.get(i).t] = 0;
 				}
 			}
 			if (changed)
@@ -514,10 +550,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 							people.get(i).y = 162;
 						if (people.get(i).y > 540 - HEIGHT) //out of bounds (too far down)
 							people.get(i).y = 540 - HEIGHT;
-						if (health + 3 <= 100)
+						if (health + 1 <= 100)
 						{
-							health += 3;
-							hbar.buf(3);
+							health += 1;
+							hbar.buf(1);
 						}
 					}
 					changed = true;
@@ -558,6 +594,56 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 		}
 	}
 
+	public void reset()
+	{
+		//set (x, y) back to default starting position
+		x = 450;
+		y = 6*LANE_WIDTH + LANE_WIDTH/2 - HEIGHT/2;
+		health = 100;
+		//reset values back to 0
+		score = 0;
+		offset = 0;
+		clock = 0;
+		//set the timecount and difficulty to default values
+		timecount = 1;
+		difficulty = 4;
+		//mark values as false to reset the game
+		start = false;
+		end = false;
+		running = false;
+		w = false;
+		a = false;
+		s = false;
+		d = false;
+		tissue = false;
+		shoes = false;
+		bottle = false;
+		gloves = false;
+		glasses = false;
+		mask = false;
+		player = false;
+		//destroy all residue left behind in the Arraylists
+		powerloc.clear();
+		people.clear();
+		for (int i = 0; i < 7; i++)
+		{
+			powerdraw[i] = false;
+			power_used[i] = -1;
+			powertime[i].stop();
+			pclock[i] = 0;
+		}
+		//set the apocalypse indicator to false
+		powerdraw[7] = false;
+		powertime[7].stop();
+		pclock[7] = 0;
+		pill = false;
+		pilluse = false;
+		//reset the MyBuffer which keeps track of the health bar
+		hbar.value = 100;
+		hbar.speed = 0.15;
+		hbar.buf = 0;
+	}
+
 	public void keyPressed(KeyEvent e)
 	{
 		//w, s, d, a are booleans that represent if up is pressed, down is pressed, right is pressed, or if left is pressed
@@ -576,6 +662,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 				pilluse = true;
 				pill = false;
 				powertime[6].start(); //the pill has been used, so start the timer
+				power_used[6] = 0;
 			}
 		}
 	}
@@ -625,7 +712,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			else if (t == 3) img = Toolkit.getDefaultToolkit().getImage("img/Gloves.png");
 			else if (t == 4) img = Toolkit.getDefaultToolkit().getImage("img/Glasses.png");
 			else if (t == 5) img = Toolkit.getDefaultToolkit().getImage("img/Mask.png");
-			else if (t == 6) img = Toolkit.getDefaultToolkit().getImage("img/pill.png");
+			else if (t == 6) img = Toolkit.getDefaultToolkit().getImage("img/Pill.png");
 		}
 
 		public int compareTo(Item d)
@@ -655,7 +742,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener
 			this.speed = (int)((Math.log(8-sicklevel)+5)/3);
 			if(sicklevel != 0)
 			{
-				this.radius = 5*(sicklevel)+(int)(Math.random()*(sicklevel+timecount)+timecount);
+				this.radius = 5*(sicklevel)+(int)(Math.random()*(sicklevel+(timecount/2)));
 				//System.out.println("Radius of LVL" + sicklevel + ": " + this.radius);
 			}
             else
